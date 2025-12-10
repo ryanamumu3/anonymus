@@ -4,40 +4,106 @@ import { supabase } from "../supabase";
 
 export default function LoginEscola({navigation}){
 
-  const [nome,setNome]=useState("");
-  const [senha,setSenha]=useState("");
+  const [nome,setNome] = useState("");
+  const [senha,setSenha] = useState("");
 
   async function login(){
     const { data } = await supabase
-    .from("escolas")
-    .select("*")
-    .eq("nome",nome)
-    .eq("senha",senha)
-    .single();
+      .from("escolas")
+      .select("*")
+      .eq("nome",nome)
+      .eq("senha",senha)
+      .single();
 
-    if(!data) return Alert.alert("Erro","Nome ou senha incorretos");
-    
-    navigation.navigate("PainelEscola",{escola:data});
+    if(!data) return Alert.alert("❌ Erro","Nome ou senha incorretos");
+
+    navigation.navigate("PainelEscola",{ escola:data });
   }
 
   return(
     <View style={styles.container}>
-      <Text style={styles.title}>Acesso da Escola</Text>
 
-      <TextInput style={styles.input} placeholder="Nome da Escola" placeholderTextColor="#777" value={nome} onChangeText={setNome}/>
-      <TextInput style={styles.input} placeholder="Senha" placeholderTextColor="#777" secureTextEntry value={senha} onChangeText={setSenha}/>
+      {/* 🔥 Card branco central moderno */}
+      <View style={styles.box}>
+        
+        <Text style={styles.title}>Acesso Escola</Text>
 
-      <TouchableOpacity style={styles.btn} onPress={login}>
-        <Text style={styles.txt}>Entrar</Text>
-      </TouchableOpacity>
+        <TextInput 
+          style={styles.input} 
+          placeholder="Nome da Escola"
+          placeholderTextColor="#666"
+          value={nome}
+          onChangeText={setNome}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          placeholderTextColor="#666"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
+
+        <TouchableOpacity style={styles.btn} onPress={login}>
+          <Text style={styles.btnTxt}>Entrar</Text>
+        </TouchableOpacity>
+
+      </View>
+
     </View>
-  )
+  );
 }
 
-const styles=StyleSheet.create({
-  container:{flex:1,backgroundColor:"#000",alignItems:"center",justifyContent:"center",padding:20},
-  title:{fontSize:26,color:"#fff",marginBottom:35},
-  input:{width:"80%",backgroundColor:"#111",padding:15,borderRadius:10,color:"#fff",marginBottom:15},
-  btn:{backgroundColor:"#222",padding:18,borderRadius:10},
-  txt:{color:"#fff",fontSize:18}
+const styles = StyleSheet.create({
+
+  container:{
+    flex:1,
+    backgroundColor:"#000",
+    justifyContent:"center",
+    alignItems:"center",
+    padding:25
+  },
+
+  box:{
+    width:"90%",
+    backgroundColor:"#fff",
+    padding:35,
+    borderRadius:30,
+    alignItems:"center",
+    elevation:5
+  },
+
+  title:{
+    fontSize:28,
+    fontWeight:"bold",
+    marginBottom:25,
+    color:"#000"
+  },
+
+  input:{
+    width:"100%",
+    backgroundColor:"#E6E6E6",
+    padding:15,
+    borderRadius:10,
+    marginBottom:15,
+    color:"#000",
+    fontSize:16
+  },
+
+  btn:{
+    width:"100%",
+    backgroundColor:"#000",
+    padding:15,
+    borderRadius:10,
+    marginTop:10
+  },
+
+  btnTxt:{
+    color:"#fff",
+    textAlign:"center",
+    fontSize:18,
+    fontWeight:"600"
+  }
+
 });

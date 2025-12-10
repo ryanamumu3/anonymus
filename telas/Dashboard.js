@@ -1,39 +1,118 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 
-let taps = 0;
-
-export default function Dashboard({navigation}){
+export default function Dashboard({ navigation }) {
 
   function abrirAdmin(){
-    taps++;
-    if(taps>=3){
-      navigation.navigate("Admin");
-      taps=0;
-    }
+    navigation.navigate("Admin"); 
   }
 
-  return(
+  return (
     <View style={styles.container}>
 
-      <TouchableOpacity onPress={abrirAdmin}>
-        <Text style={styles.title}>Anonymous</Text>
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <Text style={styles.title}> </Text>
+      </View>
 
-      <TouchableOpacity style={styles.card} onPress={()=>navigation.navigate("Formulario")}>
-        <Text style={styles.txt}>📢 Enviar Denúncia</Text>
-      </TouchableOpacity>
+      <View style={styles.contentBox}>
 
-      <TouchableOpacity style={styles.card} onPress={()=>navigation.navigate("LoginEscola")}>
-        <Text style={styles.txt}>🏫 Área da Escola</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={abrirAdmin} activeOpacity={0.6}>
+          <Image source={require("../assets/anonymus.png")} style={styles.avatar}/>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.btn} onPress={()=>navigation.navigate("Formulario")}>
+          <Text style={styles.btnText}>DENÚNCIA</Text>
+        </TouchableOpacity>
+
+       
+
+        {/* 🔥 BOTÃO NOVO AQUI */}
+        <TouchableOpacity style={styles.btn} onPress={()=>navigation.navigate("LoginEscola")}>
+          <Text style={styles.btnText}>LOGIN ESCOLA</Text>
+        </TouchableOpacity>
+
+      </View>
+
+      <View style={styles.bottomBar}>
+
+        <TouchableOpacity onPress={()=>navigation.navigate("Formulario")}>
+          <Text style={styles.icon}>📢</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={()=>navigation.navigate("Dashboard")}>
+          <Text style={styles.icon}>🏠</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={()=>navigation.navigate("PainelEscola")}>
+          <Text style={styles.icon}>⚙️</Text>
+        </TouchableOpacity>
+
+      </View>
 
     </View>
-  )
+  );
 }
 
-const styles=StyleSheet.create({
-  container:{flex:1,backgroundColor:"#000",alignItems:"center",paddingTop:100},
-  title:{color:"#fff",fontSize:32,fontWeight:"bold",marginBottom:40},
-  card:{width:"80%",backgroundColor:"#222",padding:25,borderRadius:15,marginBottom:20},
-  txt:{color:"#fff",fontSize:20,textAlign:"center"}
+const styles = StyleSheet.create({
+
+  container:{ flex:1, backgroundColor:"#000" },
+
+  header:{
+    backgroundColor:"#000",
+    paddingTop:60,
+    paddingBottom:25,
+    borderBottomLeftRadius:55,
+    borderBottomRightRadius:55,
+    alignItems:"center"
+  },
+
+  title:{ fontSize:30, fontWeight:"bold", color:"#fff" },
+
+  contentBox:{
+    flex:1,
+    backgroundColor:"#fff",
+    marginTop:-35,
+    borderTopLeftRadius:85,
+    borderTopRightRadius:85,
+    alignItems:"center",
+    paddingTop:65
+  },
+
+  avatar:{
+    width:120,
+    height:120,
+    borderRadius:80,
+    marginBottom:35,
+    borderColor:"#000",
+    borderWidth:3
+  },
+
+  btn:{
+    width:"78%",
+    backgroundColor:"#111",
+    padding:17,
+    borderRadius:10,
+    marginBottom:22
+  },
+
+  btnText:{
+    color:"#fff",
+    textAlign:"center",
+    fontSize:21,
+    fontWeight:"bold"
+  },
+
+  bottomBar:{
+    backgroundColor:"#fff",
+    flexDirection:"row",
+    justifyContent:"space-around",
+    paddingVertical:12,
+    borderTopLeftRadius:25,
+    borderTopRightRadius:25
+  },
+
+  icon:{
+    fontSize:26,
+    color:"#000"
+  }
+
 });
