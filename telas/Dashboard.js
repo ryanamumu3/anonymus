@@ -25,26 +25,33 @@ export default function Dashboard({ navigation }) {
 
        
 
-        {/* 🔥 BOTÃO NOVO AQUI */}
-        <TouchableOpacity style={styles.btn} onPress={()=>navigation.navigate("LoginEscola")}>
-          <Text style={styles.btnText}>LOGIN ESCOLA</Text>
-        </TouchableOpacity>
+       
 
       </View>
 
       <View style={styles.bottomBar}>
 
-        <TouchableOpacity onPress={()=>navigation.navigate("Formulario")}>
-          <Text style={styles.icon}>📢</Text>
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Formulario")}>
+  <Image
+    source={require('../assets/iconss/loudspeaker.png')}
+    style={styles.icons}
+  />
+</TouchableOpacity>
 
-        <TouchableOpacity onPress={()=>navigation.navigate("Dashboard")}>
-          <Text style={styles.icon}>🏠</Text>
-        </TouchableOpacity>
+<TouchableOpacity onPress={() => navigation.navigate("Dashboard")}>
+  <Image
+    source={require('../assets/iconss/home.png')}
+    style={styles.icons}
+  />
+</TouchableOpacity>
 
-        <TouchableOpacity onPress={()=>navigation.navigate("PainelEscola")}>
-          <Text style={styles.icon}>⚙️</Text>
-        </TouchableOpacity>
+<TouchableOpacity onPress={() => navigation.navigate("LoginUser")}>
+  <Image
+    source={require('../assets/iconss/engrenagem.png')}
+    style={styles.icons}
+  />
+</TouchableOpacity>
+
 
       </View>
 
@@ -102,17 +109,23 @@ const styles = StyleSheet.create({
   },
 
   bottomBar:{
-    backgroundColor:"#fff",
+    backgroundColor:"#4d4d4dff",
     flexDirection:"row",
     justifyContent:"space-around",
-    paddingVertical:12,
-    borderTopLeftRadius:25,
-    borderTopRightRadius:25
+    paddingVertical:1,
+    borderTopLeftRadius:0,
+    borderTopRightRadius:0
   },
 
   icon:{
     fontSize:26,
     color:"#000"
-  }
+  },
+  icons: {
+  width: 30,
+  height: 30,
+  resizeMode: 'contain',
+}
+
 
 });

@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 80,
     padding: 30,
-    marginTop: -25
+    marginTop: -1
   },
 
   label: { fontWeight: "bold", marginTop: 18, fontSize: 16 },
