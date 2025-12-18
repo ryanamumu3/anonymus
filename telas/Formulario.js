@@ -10,53 +10,106 @@ import {
   ScrollView
 } from "react-native";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../supabase";
+
+// 🔥 opções de satisfação
+const opcoes = [
+  "Insatisfeito",
+  "Pouco satisfeito",
+  "Satisfeito",
+  "Muito satisfeito"
+];
+
+// 🔥 mapeamento para o banco (int)
+const notasMap = {
+  "Insatisfeito": 1,
+  "Pouco satisfeito": 2,
+  "Satisfeito": 3,
+  "Muito satisfeito": 4
+};
 
 export default function Formulario({ navigation }) {
 
   const [escola, setEscola] = useState(null);
   const [listaEscolas, setListaEscolas] = useState([]);
-  const [dropdown, setDropdown] = useState(false);
+  const [dropdownEscola, setDropdownEscola] = useState(false);
 
-  const [prof, setProf] = useState("");
-  const [estrutura, setEstrutura] = useState("");
-  const [segur, setSegur] = useState("");
-  const [ambiente, setAmbiente] = useState("");
+  const [prof, setProf] = useState(null);
+  const [estrutura, setEstrutura] = useState(null);
+  const [segur, setSegur] = useState(null);
+  const [ambiente, setAmbiente] = useState(null);
   const [opiniao, setOpiniao] = useState("");
 
   useEffect(() => { carregarEscolas() }, []);
 
   async function carregarEscolas() {
-    const { data } = await supabase.from("escolas").select("nome");
+    const { data } = await supabase.from("escolas").select("*");
     setListaEscolas(data || []);
   }
 
   async function salvar() {
-    if (!escola) return Alert.alert("Selecione uma escola!");
-    if (!prof || !estrutura || !segur || !ambiente)
-      return Alert.alert("Preencha todas as notas de 1 a 5!");
+    if (!escola || !prof || !estrutura || !segur || !ambiente) {
+      return Alert.alert("Preencha todos os campos!");
+    }
 
-    const nova = {
-      id: Date.now(),
-      escola, prof, estrutura, segur, ambiente, opiniao,
-      data: new Date().toLocaleDateString()
-    };
+    const { error } = await supabase.from("denuncias").insert([
+      {
+        escola_id: escola.id,
+        prof: notasMap[prof],
+        estrutura: notasMap[estrutura],
+        segur: notasMap[segur],
+        amb: notasMap[ambiente],
+        opiniao: opiniao || null
+      }
+    ]);
 
-    const db = await AsyncStorage.getItem("denuncias");
-    const lista = db ? JSON.parse(db) : [];
-    lista.push(nova);
+    if (error) {
+      Alert.alert("Erro", error.message);
+      return;
+    }
 
-    await AsyncStorage.setItem("denuncias", JSON.stringify(lista));
-
-    Alert.alert("Denúncia registrada com sucesso!");
+    Alert.alert("Denúncia enviada com sucesso!");
     navigation.goBack();
+  }
+
+  // 🔥 seletor reutilizável
+  function Seletor({ label, value, setValue }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+      <>
+        <Text style={styles.label}>{label}</Text>
+
+        <TouchableOpacity style={styles.select} onPress={() => setOpen(!open)}>
+          <Text style={value ? styles.on : styles.off}>
+            {value || "Selecionar ▼"}
+          </Text>
+        </TouchableOpacity>
+
+        {open && (
+          <View style={styles.dropdown}>
+            {opcoes.map((op) => (
+              <TouchableOpacity
+                key={op}
+                style={styles.dropItem}
+                onPress={() => {
+                  setValue(op);
+                  setOpen(false);
+                }}
+              >
+                <Text>{op}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </>
+    );
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
 
-      {/* 🔥 BARRA SUPERIOR */}
+      {/* 🔥 HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.back}>←</Text>
@@ -64,72 +117,70 @@ export default function Formulario({ navigation }) {
         <Text style={styles.headerTitle}>Denúncia</Text>
       </View>
 
-      {/* 🔥 ÁREA QUE ROLA TOTALMENTE */}
-      <ScrollView style={{ flex: 1 }}
+      {/* 🔥 SCROLL */}
+      <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={styles.scrollArea}
-        showsVerticalScrollIndicator={true}
       >
-
         <View style={styles.box}>
 
           {/* ESCOLA */}
           <Text style={styles.label}>ESCOLA</Text>
-          <TouchableOpacity style={styles.select} onPress={() => setDropdown(!dropdown)}>
-            <Text style={escola ? styles.on : styles.off}>{escola || "Selecionar Escola ▼"}</Text>
+          <TouchableOpacity
+            style={styles.select}
+            onPress={() => setDropdownEscola(!dropdownEscola)}
+          >
+            <Text style={escola ? styles.on : styles.off}>
+              {escola ? escola.nome : "Selecionar Escola ▼"}
+            </Text>
           </TouchableOpacity>
 
-          {dropdown && (
+          {dropdownEscola && (
             <View style={styles.dropdown}>
               <FlatList
                 data={listaEscolas}
-                style={{ maxHeight: 200 }}
-                keyExtractor={(i) => i.nome}
+                keyExtractor={(i) => i.id.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={styles.dropItem}
-                    onPress={() => { setEscola(item.nome); setDropdown(false) }}
+                    onPress={() => {
+                      setEscola(item);
+                      setDropdownEscola(false);
+                    }}
                   >
-                    <Text style={{ fontSize: 16 }}>{item.nome}</Text>
+                    <Text>{item.nome}</Text>
                   </TouchableOpacity>
                 )}
               />
             </View>
           )}
 
-          {/* INPUTS */}
-          <Text style={styles.label}>AMBIENTE ESCOLAR</Text>
-          <TextInput style={styles.input} keyboardType="numeric" value={ambiente} onChangeText={setAmbiente} placeholder="1 a 5" />
+          {/* 🔥 SELETORES */}
+          <Seletor label="AMBIENTE ESCOLAR" value={ambiente} setValue={setAmbiente} />
+          <Seletor label="PROFESSORES" value={prof} setValue={setProf} />
+          <Seletor label="ESTRUTURA FÍSICA" value={estrutura} setValue={setEstrutura} />
+          <Seletor label="SEGURANÇA" value={segur} setValue={setSegur} />
 
-          <Text style={styles.label}>PROFESSORES</Text>
-          <TextInput style={styles.input} keyboardType="numeric" value={prof} onChangeText={setProf} placeholder="1 a 5" />
-
-          <Text style={styles.label}>ESTRUTURA FÍSICA</Text>
-          <TextInput style={styles.input} keyboardType="numeric" value={estrutura} onChangeText={setEstrutura} placeholder="1 a 5" />
-
-          <Text style={styles.label}>SEGURANÇA</Text>
-          <TextInput style={styles.input} keyboardType="numeric" value={segur} onChangeText={setSegur} placeholder="1 a 5" />
-
+          {/* OPINIÃO */}
           <Text style={styles.label}>OPINIÃO</Text>
           <TextInput
             style={[styles.input, { height: 110 }]}
             multiline
-            placeholder="Descreva com detalhes"
+            placeholder="Descreva sua opinião"
             value={opiniao}
             onChangeText={setOpiniao}
           />
 
-          {/* BOTÃO */}
           <TouchableOpacity style={styles.btn} onPress={salvar}>
             <Text style={styles.btnTxt}>ENVIAR</Text>
           </TouchableOpacity>
 
         </View>
-
       </ScrollView>
 
-      {/* 🔥 BARRA FIXA */}
+      {/* 🔥 BOTTOM BAR */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity onPress={() => navigation.navigate("Formulario")}><Text style={styles.icon}>📢</Text></TouchableOpacity>
+        <TouchableOpacity><Text style={styles.icon}>📢</Text></TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("Dashboard")}><Text style={styles.icon}>🏠</Text></TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("PainelEscola")}><Text style={styles.icon}>⚙️</Text></TouchableOpacity>
       </View>
@@ -138,14 +189,9 @@ export default function Formulario({ navigation }) {
   );
 }
 
-/* ----------------------- ESTILOS FINAL ----------------------- */
-
 const styles = StyleSheet.create({
 
-  scrollArea: {
-    paddingBottom: 160,
-    flexGrow: 1,
-  },
+  scrollArea: { paddingBottom: 160 },
 
   header: {
     paddingTop: 60,
@@ -154,7 +200,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 55,
     borderBottomRightRadius: 55,
     alignItems: "center",
-    justifyContent: "center"
   },
 
   back: { position: "absolute", left: 20, fontSize: 28, color: "#fff" },
@@ -164,22 +209,68 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 80,
     padding: 30,
-    marginTop: -1
+    marginTop: -1,
   },
 
   label: { fontWeight: "bold", marginTop: 18, fontSize: 16 },
-  input: { backgroundColor: "#E6E6E6", padding: 13, borderRadius: 12, marginTop: 5, fontSize: 16 },
 
-  select: { backgroundColor: "#E6E6E6", padding: 15, borderRadius: 12, marginTop: 5 },
+  input: {
+    backgroundColor: "#E6E6E6",
+    padding: 13,
+    borderRadius: 12,
+    marginTop: 5,
+    fontSize: 16,
+  },
+
+  select: {
+    backgroundColor: "#E6E6E6",
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 5,
+  },
+
   on: { color: "#000", fontSize: 16 },
   off: { color: "#777", fontSize: 16 },
 
-  dropdown: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#ccc", borderRadius: 10, marginTop: 6 },
-  dropItem: { padding: 15, borderBottomWidth: 1, borderColor: "#eee" },
+  dropdown: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    marginTop: 6,
+  },
 
-  btn: { backgroundColor: "#000", padding: 18, borderRadius: 12, marginTop: 30 },
-  btnTxt: { color: "#fff", fontSize: 19, textAlign: "center", fontWeight: "bold" },
+  dropItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+  },
 
-  bottomBar: { position: "absolute", bottom: 0, width: "100%", backgroundColor: "#fff", flexDirection: "row", justifyContent: "space-around", paddingVertical: 12, borderTopLeftRadius: 25, borderTopRightRadius: 25 },
+  btn: {
+    backgroundColor: "#000",
+    padding: 18,
+    borderRadius: 12,
+    marginTop: 30,
+  },
+
+  btnTxt: {
+    color: "#fff",
+    fontSize: 19,
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 12,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+  },
+
   icon: { fontSize: 26, color: "#000" },
 });
