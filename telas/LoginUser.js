@@ -10,16 +10,36 @@ import {
 } from "react-native";
 import { supabase } from "../supabase";
 
+/* 🔥 validação básica de email */
+function validarEmail(email) {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+}
+
 export default function LoginUser({ navigation }) {
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
-  // 🔥 controle dos cliques
+  // 🔥 controle dos cliques secretos
   const tapCount = useRef(0);
   const lastTap = useRef(0);
 
   async function logar() {
+
+    // ✅ validação básica
+    if (!email || !senha) {
+      return Alert.alert("Erro", "Preencha email e senha");
+    }
+
+    if (!validarEmail(email)) {
+      return Alert.alert("Email inválido", "Digite um email válido");
+    }
+
+    if (senha.length < 6) {
+      return Alert.alert("Senha inválida", "A senha deve ter ao menos 6 caracteres");
+    }
+
     const { data, error } = await supabase
       .from("usuarios")
       .select("*")
@@ -75,6 +95,7 @@ export default function LoginUser({ navigation }) {
           placeholderTextColor="#A9A9A9"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none"
         />
 
         <Text style={styles.label}>SENHA</Text>
@@ -93,16 +114,16 @@ export default function LoginUser({ navigation }) {
 
         <TouchableOpacity onPress={() => navigation.navigate("RegisterUser")}>
           <Text style={styles.register}>
-            ESQUECEU A SENHA? <Text style={{ fontWeight: "bold" }}>CADASTRE-SE</Text>
+            <Text style={{ fontWeight: "bold" }}>CADASTRE-SE</Text>
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-  style={styles.guestBtn}
-  onPress={() => navigation.navigate("Dashboard", { guest: true })}
->
-  <Text style={styles.guestTxt}>ENTRAR SEM LOGIN</Text>
-</TouchableOpacity>
+          style={styles.guestBtn}
+          onPress={() => navigation.navigate("Dashboard", { guest: true })}
+        >
+          <Text style={styles.guestTxt}>ENTRAR SEM LOGIN</Text>
+        </TouchableOpacity>
 
       </View>
     </ImageBackground>
@@ -176,16 +197,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
   },
+
   guestBtn: {
-  marginTop: 18,
-},
+    marginTop: 18,
+  },
 
-guestTxt: {
-  color: "#111",
-  fontSize: 14,
-  fontWeight: "bold",
-  textAlign: "center",
-  textDecorationLine: "underline",
-},
-
+  guestTxt: {
+    color: "#111",
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+    textDecorationLine: "underline",
+  },
 });
