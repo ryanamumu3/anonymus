@@ -1,11 +1,27 @@
 import { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, View, TextInput, TouchableOpacity } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { supabase } from "../supabase";
+
+function avaliar(v) {
+  return {
+    1: "Insatisfeito",
+    2: "Pouco satisfeito",
+    3: "Satisfeito",
+    4: "Muito satisfeito",
+  }[v] || "Não informado";
+}
 
 export default function PainelEscola({ route }) {
   const { escola } = route.params;
   const [lista, setLista] = useState([]);
-  const [comentarios, setComentarios] = useState({}); // armazena comentário de cada denúncia
+  const [comentarios, setComentarios] = useState({});
 
   useEffect(() => {
     carregar();
@@ -20,126 +36,153 @@ export default function PainelEscola({ route }) {
     setLista(data || []);
   }
 
-  function salvarComentario(denunciaId) {
-    console.log("Comentário da denúncia", denunciaId, ":", comentarios[denunciaId]);
-    // aqui você salva no banco
-  }
-
-  function atualizarComentario(denunciaId, texto) {
-    setComentarios((prev) => ({ ...prev, [denunciaId]: texto }));
-  }
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{escola.nome}</Text>
-      <Text style={styles.subtitle}>Denúncias registradas</Text>
 
       <FlatList
         data={lista}
         keyExtractor={(i) => i.id.toString()}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scroll}
+        ListHeaderComponent={
+          <>
+            <Text style={styles.title}>{escola.nome}</Text>
+            <Text style={styles.subtitle}>Denúncias registradas</Text>
+          </>
+        }
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.label}>Estrutura: <Text style={styles.value}>{item.estrutura}</Text></Text>
-            <Text style={styles.label}>Professores: <Text style={styles.value}>{item.prof}</Text></Text>
-            <Text style={styles.label}>Segurança: <Text style={styles.value}>{item.segur}</Text></Text>
-            <Text style={styles.label}>Ambiente: <Text style={styles.value}>{item.amb}</Text></Text>
 
-            {/* ESPAÇO PARA COMENTÁRIO */}
-            <View style={styles.comentarioContainer}>
-              <Text style={styles.comentarioTitle}>Comentário da Escola</Text>
+<Text style={styles.data}>
+  📅 {new Date(item.data).toLocaleString("pt-BR")}
+</Text>
+
+
+            <Text style={styles.label}>
+              Estrutura: <Text style={styles.value}>{avaliar(item.estrutura)}</Text>
+            </Text>
+
+            <Text style={styles.label}>
+              Professores: <Text style={styles.value}>{avaliar(item.prof)}</Text>
+            </Text>
+
+            <Text style={styles.label}>
+              Segurança: <Text style={styles.value}>{avaliar(item.segur)}</Text>
+            </Text>
+
+            <Text style={styles.label}>
+              Ambiente: <Text style={styles.value}>{avaliar(item.amb)}</Text>
+            </Text>
+
+            {item.opiniao ? (
+              <>
+                <Text style={styles.label}>Opinião:</Text>
+                <Text style={styles.value}>{item.opiniao}</Text>
+              </>
+            ) : null}
+
+            <View style={styles.comentarioBox}>
+              <Text style={styles.comentarioTitle}>Comentário da escola</Text>
+
               <TextInput
                 style={styles.input}
-                placeholder="Digite aqui o comentário..."
-                placeholderTextColor="#9ca3af"
                 multiline
                 value={comentarios[item.id] || ""}
-                onChangeText={(text) => atualizarComentario(item.id, text)}
+                onChangeText={(t) =>
+                  setComentarios((p) => ({ ...p, [item.id]: t }))
+                }
               />
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => salvarComentario(item.id)}
-              >
-                <Text style={styles.buttonText}>Salvar</Text>
+
+              <TouchableOpacity style={styles.btn}>
+                <Text style={styles.btnText}>Salvar</Text>
               </TouchableOpacity>
             </View>
+
           </View>
         )}
       />
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: "100vh", // 🔥 ISSO FAZ ROLAR NO PC
     backgroundColor: "#f2f4f8",
-    paddingTop: 60,
-    paddingHorizontal: 16,
   },
+
+  scroll: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+
   title: {
     fontSize: 26,
     fontWeight: "700",
-    color: "#111827",
     textAlign: "center",
+    marginTop: 20,
   },
+
   subtitle: {
-    fontSize: 14,
-    color: "#6b7280",
     textAlign: "center",
+    color: "#6b7280",
     marginBottom: 20,
   },
+
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    elevation: 5,
   },
+
   label: {
-    fontSize: 14,
     color: "#6b7280",
-    marginBottom: 4,
   },
+
   value: {
     fontWeight: "600",
     color: "#111827",
   },
-  comentarioContainer: {
+
+  comentarioBox: {
     marginTop: 12,
     backgroundColor: "#f9fafb",
-    borderRadius: 12,
     padding: 12,
+    borderRadius: 12,
   },
+
   comentarioTitle: {
-    fontSize: 12,
     fontWeight: "700",
     color: "#2563eb",
     marginBottom: 6,
-    textTransform: "uppercase",
   },
+
   input: {
     minHeight: 60,
-    borderRadius: 10,
-    backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#d1d5db",
+    borderRadius: 10,
     padding: 10,
-    fontSize: 14,
-    color: "#111827",
-    textAlignVertical: "top",
     marginBottom: 10,
   },
-  button: {
+
+  btn: {
     backgroundColor: "#2563eb",
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
   },
-  buttonText: {
+
+  btnText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 14,
   },
+
+  data: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 6,
+  }
 });
